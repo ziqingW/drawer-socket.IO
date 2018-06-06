@@ -20,7 +20,9 @@ canvas.addEventListener('mousemove', function(event) {
   if (mouse_down) {
     current = [event.offsetX, event.offsetY];
     if (eraser) {
-      erase(current);
+      let eraser_size = document.getElementById("eraser-size").value;
+      erase(current, eraser_size);
+      socket.emit('erase', [current, eraser_size]);
     }
     else {
       if (past) {
@@ -29,6 +31,9 @@ canvas.addEventListener('mousemove', function(event) {
       }
       past = [event.offsetX, event.offsetY];
     }
+    // let image = document.getElementById("canvas");
+    // socket.emit('save', image);
+    // console.log(image);
   }
 });
 
@@ -38,6 +43,16 @@ socket.on('draw', function(data) {
   draw(past, current, data[2], data[3]);
 });
 
+socket.on('erase', function(data) {
+  erase(data[0], data[1]);
+});
+
+// socket.on("restore" ,function(data){
+//   if (data) {
+//   ctx.drawImage(data, 0, 0);
+//   console.log("received data");
+//   }
+// });
 
 function draw(past, current, strokeColor, thickness) {
   ctx.strokeStyle = strokeColor;
@@ -49,16 +64,18 @@ function draw(past, current, strokeColor, thickness) {
   ctx.closePath();
 }
 
-function erase(current) {
+function erase(current, size) {
   ctx.strokeStyle = "white";
   ctx.fillStyle = "white";
-  ctx.fillRect(current[0], current[1], 10, 10);
+  ctx.fillRect(current[0], current[1], size, size);
 }
 document.getElementById("eraser").onclick = function() {
   if (eraser) {
     eraser = false;
+    this.style = "background-color: #ddd; color: black;";
   }
   else {
     eraser = true;
+    this.style = "background-color: red; color: white;";
   }
 };
